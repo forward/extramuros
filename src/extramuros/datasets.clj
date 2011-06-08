@@ -2,7 +2,7 @@
              - import, wrap, write, open datasets
              - Table and Row Java objects manipulation
              - Table interface"
-      :author "antonio"}
+      :author "Antonio Garrote"}
   extramuros.datasets
   (:import (extramuros.java.formats Row Table RowTypes TableHeader)
            (org.apache.hadoop.io LongWritable)
@@ -16,6 +16,7 @@
 (def *integer* RowTypes/INTEGER)
 (def *long* RowTypes/LONG)
 (def *categorical* RowTypes/CATEGORICAL)
+(def *null* RowTypes/NULL)
 
 (defn numeric-type?
   "Checks if a datum is numeric"
@@ -45,13 +46,27 @@
 (defn parse-datum
   "Given a string containing a datum and type information tries to parse the string to the provided kind"
   ([datum kind]
-     (condp = kind
-         *string* (str datum)
-         *float*  (if (string? datum) (Float. (Float/parseFloat datum)) (Float. (float datum)))
-         *double*  (if (string? datum) (Double. (Double/parseDouble datum)) (Double. (double datum)))
-         *integer*  (if (string? datum) (Integer. (Integer/parseInt datum)) (Integer. (int datum)))         
-         *categorical* (str datum)
-         (throw (Exception. (str "Uknown type for row " kind))))))
+     (if (nil? datum)
+       nil
+       (try 
+         (condp = kind
+             *string* (str datum)
+             *float*  (if (string? datum)
+                        (Float. (Float/parseFloat (.replaceAll datum " " "")))
+                        (Float. (float datum)))
+             *double*  (if (string? datum)
+                         (Double. (Double/parseDouble (.replaceAll datum " " "")))
+                         (Double. (double datum)))
+             *integer*  (if (string? datum)
+                          (Integer. (Integer/parseInt (.replaceAll datum " " "")))
+                          (Integer. (int datum)))         
+             *long*  (if (string? datum)
+                          (Long. (Long/parseLong (.replaceAll datum " " "")))
+                          (Long. (int datum)))         
+             *categorical* (str datum)
+             (throw (Exception. (str "Uknown type for row " kind))))
+         (catch Exception ex
+           nil)))))
 
 (defn parse-writable
   "Tries to extract the object wrapped in a Writable container object"
@@ -136,9 +151,10 @@
 
 (defn import-dataset
   "creates a new table from a local file system file, returns the table hash for the new table"
-  ([in-filename out-filename schema & {:keys [delim keyword-headers quote skip header compress-delim filter mapper]
+  ([in-filename out-filename schema & {:keys [delim keyword-headers quote nulls skip header compress-delim filter mapper]
                                        :or   {delim \,
                                               quote \"
+                                              nulls ["","NULL"]
                                               skip 0
                                               header false
                                               filter (constantly true)
@@ -168,7 +184,16 @@
                (if (filter line)
              
                  (let [_ (print ".")
-                       line (vec (.split line (str delim)))]
+                       line (vec (.split line (str delim)))
+                       line (map (fn [part]
+                                   (if  (empty? (clojure.core/filter #(if (and (string? %) (string? part))
+                                                                        (= (.compareToIgnoreCase (.replaceAll part " " "")
+                                                                                                 %)
+                                                                           0)
+                                                                        (= part %)) nulls))
+                                     part
+                                     nil))
+                                 line)]
                    (recur skip (rest lines)
                           (conj acum (mapper line))))
              
@@ -184,6 +209,14 @@
   (let [table (extramuros.java.formats.adapters.TextFileTableAdapter.)]
     (doto table
       (.setDefaultSeparator (:separator opts))
+      (.setNullValues (let [null-list (or (:nulls opts) ["", "NULL"])
+                            null-array (make-array String (count null-list))]
+                        (loop [null-list null-list
+                               counter 0]
+                          (if (empty? null-list)
+                            null-array
+                            (do (aset null-array counter (first null-list))
+                                (recur (rest null-list) (inc counter)))))))
       (.setRowsPath input)
       (.setTablePath output)
       (.setConfiguration *conf*)
@@ -200,6 +233,15 @@
 
 ;; table interface
 
+(defn table-file
+  "Returns the path to the HDFS file where the meta-information about this table is stored"
+  ([table]
+     (.getTablePath (:table table))))
+
+(defn table-rows-file
+  "Returns the path to the HDFS file/directory where the rows of this table are stored"
+  ([table]
+     (.getRowsPath (:table table))))
 
 (defn row-to-seq
   "Parses a row and returns a sequence of basic types"

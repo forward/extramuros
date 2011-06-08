@@ -1,14 +1,10 @@
-(ns {:doc "Math utilities and mathematical types manipulation"
-     :author "antonio"}
+(ns ^{:doc "Math utilities and mathematical types manipulation"
+      :author "antonio"}
   extramuros.math
+  (:use [extramuros.hdfs :only [vector-to-seq]])
   (:import [org.apache.mahout.clustering Cluster]
            [org.apache.mahout.math Vector]
            [org.apache.mahout.common.distance EuclideanDistanceMeasure]))
-
-;; vectors
-(defn vector-to-seq
-  ([v] (let [elems (iterator-seq (.iterator v))]
-         (map (fn [elem] (.get elem)) elems))))
 
 ;; clusters
 (defn cluster-id
@@ -52,3 +48,8 @@
           (map sort)
           (map vec) set vec sort
           (filter (fn [[x y z]] (and (not= x y) (not= y z) (not= x z)))))))
+
+;; pairs
+
+(defn pair-to-seq
+  ([pair] [(.getFirst pair) (.getSecond pair)]))

@@ -22,7 +22,7 @@
 
 (deftype CanopyAdapterJob [job configuration]  extramuros.jobs.core.ExtramurosJob
          (run [this] (let [job-run (canopy-adapter-job
-                                    (:output @configuration)
+                                    (:output-path @configuration)
                                     (:table (:table @configuration))
                                     (build-distance (or (:distance @configuration) :euclidean))
                                     (:t1 @configuration)

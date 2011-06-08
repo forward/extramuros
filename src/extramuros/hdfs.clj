@@ -88,9 +88,6 @@
 
 (defn seq-file-reader
   ([path-str]
-     (println (str "FS:" *fs*))
-     (println (str "PATH:" path))
-     (println (str "CONF:" *conf*))
      (org.apache.hadoop.io.SequenceFile$Reader. *fs* (path path-str) *conf*)))
 
 (defn seq-file-writer

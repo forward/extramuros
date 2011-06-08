@@ -19,13 +19,15 @@
   ([clusters points label-x label-y table display-centroids]
      (let [x (table-column-position label-x table)
            y (table-column-position label-y table)
+           cluster (reverse clusters)
            [first-label first-cluster] (first clusters)
            clusters (rest clusters)
            plot-env (-> (scatter-plot-for (get points first-label)
-                                          :legend (str "Dimensions " label-x " vs " label-y)
+                                          :title (str "Dimensions " label-x " vs " label-y)
+                                          :legend true
                                           :x-label label-x
                                           :y-label label-y) 
-                        (plot-dimensions x y))]
+                        (plot-dimensions x y :label (str "cluster " first-label)))]
        (loop [clusters clusters
               plot-env plot-env]
          (if (empty? clusters)

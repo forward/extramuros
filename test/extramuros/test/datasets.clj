@@ -1,4 +1,5 @@
 (ns extramuros.test.datasets
+  (:use [extramuros.test.configuration])
   (:use [extramuros.datasets])
   (:use [extramuros.hdfs])
   (:use [clojure.test])
@@ -7,7 +8,7 @@
            [org.apache.hadoop.io Text Writable LongWritable]))
 
 ;; Hadoop env setup
-(bootstrap!)
+(setup-env)
 
 (deftest parse-datum-string
   (let [v (parse-datum "hi" *string*)]
@@ -80,8 +81,7 @@
     (when (exists? "test_assets/imported_out.csv.rows") (delete "test_assets/imported_out.csv.rows"))))
 
 (deftest test-import-dataset-separator
-  (let [test-file-schema (def-schema :name *string* :columna *integer* :columnb *float*)
-        _ (println "ERROR HERE")]
+  (let [test-file-schema (def-schema :name *string* :columna *integer* :columnb *float*)]
     (when (exists? "test_assets/imported_out.csv") (delete "test_assets/imported_out.csv"))
     (when (exists? "test_assets/imported_out.csv.rows") (delete "test_assets/imported_out.csv.rows"))
     (let [dataset (import-dataset "test_assets/test_input.tsv" "test_assets/imported_out.csv" test-file-schema
@@ -116,6 +116,56 @@
     (when (exists? "test_assets/imported_out.csv") (delete "test_assets/imported_out.csv"))
     (when (exists? "test_assets/imported_out.csv.rows") (delete "test_assets/imported_out.csv.rows"))))
 
+(deftest test-null
+  (let [test-file-schema (def-schema :name *string* :columna *integer* :columnb *float*)]
+    (when (exists? "test_assets/imported_out.csv") (delete "test_assets/imported_out.csv"))
+    (when (exists? "test_assets/imported_out.csv.rows") (delete "test_assets/imported_out.csv.rows"))
+    (let [dataset (import-dataset "test_assets/test_input_nulls.csv" "test_assets/imported_out.csv" test-file-schema)]
+      (is (exists? "test_assets/imported_out.csv"))
+      (is (exists? "test_assets/imported_out.csv"))
+      (is (= 3 (count (table-rows dataset))))
+      (let [first-row (row-to-seq (first (table-rows dataset)))
+            second-row (row-to-seq (second (table-rows dataset)))
+            third-row (row-to-seq (nth (table-rows dataset) 2))]
+        (is (nil? (nth first-row 0)))
+        (is (= 1 (nth first-row 1)))
+        (is (= 1.0 (nth first-row 2)))
+        (is (= "\"two\"" (nth second-row 0)))
+        (is (nil? (nth second-row 1)))
+        (is (= 2.0 (nth second-row 2)))
+        (is (= "\"three\"" (nth third-row 0)))
+        (is (= 3 (nth third-row 1)))
+        (is (nil? (nth third-row 2)))))
+    (let [table (open-dataset "test_assets/imported_out.csv")]
+      (is (= 3 (count (table-rows table)))))
+    (when (exists? "test_assets/imported_out.csv") (delete "test_assets/imported_out.csv"))
+    (when (exists? "test_assets/imported_out.csv.rows") (delete "test_assets/imported_out.csv.rows"))))
+
+(deftest test-null-format-exceptions
+  (let [test-file-schema (def-schema :name *integer* :columna *integer* :columnb *float*)]
+    (when (exists? "test_assets/imported_out.csv") (delete "test_assets/imported_out.csv"))
+    (when (exists? "test_assets/imported_out.csv.rows") (delete "test_assets/imported_out.csv.rows"))
+    (let [dataset (import-dataset "test_assets/test_input.csv" "test_assets/imported_out.csv" test-file-schema)]
+      (is (exists? "test_assets/imported_out.csv"))
+      (is (exists? "test_assets/imported_out.csv"))
+      (is (= 3 (count (table-rows dataset))))
+      (let [first-row (row-to-seq (first (table-rows dataset)))
+            second-row (row-to-seq (second (table-rows dataset)))
+            third-row (row-to-seq (nth (table-rows dataset) 2))]
+        (is (nil? (nth first-row 0)))
+        (is (= 1 (nth first-row 1)))
+        (is (= 1.0 (nth first-row 2)))
+        (is (nil? (nth second-row 0)))
+        (is (= 2 (nth second-row 1)))
+        (is (= 2.0 (nth second-row 2)))
+        (is (nil? (nth third-row 0)))
+        (is (= 3 (nth third-row 1)))
+        (is (= 3.0 (nth third-row 2)))))
+    (let [table (open-dataset "test_assets/imported_out.csv")]
+      (is (= 3 (count (table-rows table)))))
+    (when (exists? "test_assets/imported_out.csv") (delete "test_assets/imported_out.csv"))
+    (when (exists? "test_assets/imported_out.csv.rows") (delete "test_assets/imported_out.csv.rows"))))
+
 (deftest test-wrap-text-dataset
   (when (exists? "test_assets/test.txt") (delete "test_assets/test.txt"))
   (let [test-file-schema (def-schema :name *string* :columna *integer* :columnb *float*)
@@ -129,3 +179,85 @@
       (is (= 2 (count (table-rows table)))))
     (when (exists? "test_assets/test.txt") (delete "test_assets/test.txt"))
     (when (exists? "test_assets/test.txt.out") (delete "test_assets/test.txt.out"))))
+
+(deftest test-wrap-text-dataset-with-nulls
+  (when (exists? "test_assets/test.txt") (delete "test_assets/test.txt"))
+  (let [test-file-schema (def-schema :name *string* :columna *integer* :columnb *float*)
+        fsos (.create (FileSystem/get *conf*) (path "test_assets/test.txt"))
+        wrtr (java.io.PrintWriter. fsos)]
+    (.println wrtr "NULL,1,1.0")
+    (.println wrtr "\"two\",NULL,2.0")
+    (.println wrtr "\"three\",3,NULL")
+    (.flush wrtr)
+    (.close wrtr)
+    (let [table (wrap-dataset :text "test_assets/test.txt" "test_assets/test.txt.out" test-file-schema {:separator ","})]
+      (is (= 3 (count (table-rows table))))
+      (let [first-row (row-to-seq (first (table-rows table)))
+            second-row (row-to-seq (second (table-rows table)))
+            third-row (row-to-seq (nth (table-rows table) 2))]
+        (is (nil? (nth first-row 0)))
+        (is (= 1 (nth first-row 1)))
+        (is (= 1.0 (nth first-row 2)))
+        (is (= "\"two\"" (nth second-row 0)))
+        (is (nil? (nth second-row 1)))
+        (is (= 2.0 (nth second-row 2)))
+        (is (= "\"three\"" (nth third-row 0)))
+        (is (= 3 (nth third-row 1)))
+        (is (nil? (nth third-row 2)))))
+    (when (exists? "test_assets/test.txt") (delete "test_assets/test.txt"))
+    (when (exists? "test_assets/test.txt.out") (delete "test_assets/test.txt.out"))))
+
+(deftest test-wrap-text-dataset-with-nulls-2
+  (when (exists? "test_assets/test.txt") (delete "test_assets/test.txt"))
+  (let [test-file-schema (def-schema :name *string* :columna *integer* :columnb *float*)
+        fsos (.create (FileSystem/get *conf*) (path "test_assets/test.txt"))
+        wrtr (java.io.PrintWriter. fsos)]
+    (.println wrtr ",1,1.0")
+    (.println wrtr "\"two\",,2.0")
+    (.println wrtr "\"three\",3,")
+    (.flush wrtr)
+    (.close wrtr)
+    (let [table (wrap-dataset :text "test_assets/test.txt" "test_assets/test.txt.out" test-file-schema {:separator ","})]
+      (is (= 3 (count (table-rows table))))
+      (let [first-row (row-to-seq (first (table-rows table)))
+            second-row (row-to-seq (second (table-rows table)))
+            third-row (row-to-seq (nth (table-rows table) 2))]
+        (is (nil? (nth first-row 0)))
+        (is (= 1 (nth first-row 1)))
+        (is (= 1.0 (nth first-row 2)))
+        (is (= "\"two\"" (nth second-row 0)))
+        (is (nil? (nth second-row 1)))
+        (is (= 2.0 (nth second-row 2)))
+        (is (= "\"three\"" (nth third-row 0)))
+        (is (= 3 (nth third-row 1)))
+        (is (nil? (nth third-row 2)))))
+    (when (exists? "test_assets/test.txt") (delete "test_assets/test.txt"))
+    (when (exists? "test_assets/test.txt.out") (delete "test_assets/test.txt.out"))))
+
+(deftest test-wrap-text-dataset-with-nulls-3
+  (when (exists? "test_assets/test.txt") (delete "test_assets/test.txt"))
+  (let [test-file-schema (def-schema :name *string* :columna *integer* :columnb *float*)
+        fsos (.create (FileSystem/get *conf*) (path "test_assets/test.txt"))
+        wrtr (java.io.PrintWriter. fsos)]
+    (.println wrtr ",1 , 1.0")
+    (.println wrtr "\"two\", NULL , 2.0")
+    (.println wrtr "\"three\",3,")
+    (.flush wrtr)
+    (.close wrtr)
+    (let [table (wrap-dataset :text "test_assets/test.txt" "test_assets/test.txt.out" test-file-schema {:separator ","})]
+      (is (= 3 (count (table-rows table))))
+      (let [first-row (row-to-seq (first (table-rows table)))
+            second-row (row-to-seq (second (table-rows table)))
+            third-row (row-to-seq (nth (table-rows table) 2))]
+        (is (nil? (nth first-row 0)))
+        (is (= 1 (nth first-row 1)))
+        (is (= 1.0 (nth first-row 2)))
+        (is (= "\"two\"" (nth second-row 0)))
+        (is (nil? (nth second-row 1)))
+        (is (= 2.0 (nth second-row 2)))
+        (is (= "\"three\"" (nth third-row 0)))
+        (is (= 3 (nth third-row 1)))
+        (is (nil? (nth third-row 2)))))
+    (when (exists? "test_assets/test.txt") (delete "test_assets/test.txt"))
+    (when (exists? "test_assets/test.txt.out") (delete "test_assets/test.txt.out"))))
+

@@ -79,8 +79,9 @@
            opts (apply hash-map opts)
            x-label (or (:x-label opts) "")
            y-label (or (:y-label opts) "")
-           legend (or (:legend opts) "")]
-       [{:x-label x-label :y-label y-label :legend true} data points])))
+           title (or (:title opts) "")
+           legend (or (:legend opts) true)]
+       [{:x-label x-label :y-label y-label :title title :legend legend} data points])))
 
 (defn plot-data
   ([[plot data points] new-data]
@@ -94,6 +95,7 @@
                              :x-label (:x-label plot)
                              :y-label (:y-label plot)
                              :legend (:legend plot)
+                             :title (:title plot)
                              :series-label (or (:label opts) ""))
                (add-points plot
                            (map #(nth % x) points)

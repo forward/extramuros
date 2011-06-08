@@ -1,11 +1,29 @@
-(ns extramuros.jobs.file
+(ns ^{:doc "Jobs to manipulate tables and other kind of files in a hadoop cluster."
+      :author "Antonio Garrote"}
+  extramuros.jobs.file
   (:use [extramuros.jobs core]
         [extramuros.hdfs :only [*conf* path]]
         [extramuros.datasets :only [table-obj-to-schema]]))
 
 ;; Count lines job
 
-(defn count-lines-job
+(defmethod job-info :table-count-lines [_]
+  "Count the number of rows in a table in a distributed fashion.
+
+   * Options:
+     - output-path : path where the final count of lines will be stored in a sequence file with a single pair key/value
+     - table :       table whose rows are going to be conted
+
+   * Output path:
+     Path to the file where the number of lines is stored as the single pair in a sequence file
+
+   * Output:
+     The number of lines as an integer
+
+   * Visualization:
+     None.")
+
+(defn- count-lines-job
   ([output-file table-or-path]
      (let [job (extramuros.java.jobs.file.countlines.Job.
                 (path output-file)
@@ -14,7 +32,7 @@
        (.run job)
        job)))
 
-(deftype FileCountLinesJob [job configuration]  extramuros.jobs.core.ExtramurosJob
+(deftype TableCountLinesJob [job configuration]  extramuros.jobs.core.ExtramurosJob
          (run [this] (let [job-run (count-lines-job (:output-path @configuration)
                                                     (:table @configuration))]
                        (swap! job (fn [_] job-run))))
@@ -28,13 +46,37 @@
          (visualize [this] nil)
          (visualize [this options] nil))
 
-(defmethod make-job :file-count-lines [_]
-  (FileCountLinesJob. (atom nil) (atom nil)))
+(defmethod make-job :table-count-lines [_]
+  (TableCountLinesJob. (atom nil) (atom nil)))
 
 
 ;; Sample file job
 
-(defn sample-file-job
+(defmethod job-info :sample-file [_]
+  "Sample a number of files expressed as a percentage of the total number of lines from a SequenceFile.
+   The lines will be extracted randomly from the original file.
+
+   * Notice:
+     This job does not run distributed.
+     The whole file will be scanned.
+     This Job does not work with tables/table-adapters, only with sequence files.
+
+   * Options:
+     - file-to-sample:       path to the sequence file to sample. It must be a single file, directories are not supported.
+     - file-output:          path to the file where sequence file with the sampled pairs will be written
+     - total-lines:          total number of lines in the file.
+     - percentage-to-sample: the percentage of lines that will be sampled as a value in the closed interval [0,1].
+
+   * Output path:
+     The path to the sequence file where the sampled lines are stored.
+
+   * Output:
+     An iterator for the values in the sampled sequence file.
+
+   * Visualization:
+     None.")
+
+(defn- sample-file-job
   ([file-to-sample file-output total-lines percentage-to-sample]
      (let [job (extramuros.java.jobs.file.sample.Job. file-to-sample file-output (int total-lines) (float percentage-to-sample) *conf*)]
        (.run job)
@@ -62,7 +104,30 @@
 
 ;; Probabilistic sampling table job
 
-(defn probabilistic-sample-table-job
+(defmethod job-info :probabilistic-sample-table [_]
+  "Sample the rows of a table in a distributed way. A probabilitiy in the interval [0,1] for a row to be
+   sampled must be provided.
+   The implementation uses a uniform probability distribution to decide if a row is finally sampled.
+
+   * Note:
+     The job implementation will run an additional combiner job to combinne all the outputs from the sample
+     job in a single file in the HDFS file system.
+
+   * Options:
+     - directory-output     : directory where the output for this job will be stored.
+     - sampling-probability : probability that a row in the table will be copied to the sample table
+     - table:               : table to be sampled
+
+   * Output Path:
+     Path to the HDFS file containing the sample rows.
+
+   * Output:
+     Returns a new Table map for sampled rows. The table metadata has not yet been written to disk.
+
+   * Visualization:
+     None.")
+
+(defn- probabilistic-sample-table-job
   ([directory-output sampling-probability table]
      (let [job (extramuros.java.jobs.file.probabilisticsample.Job. directory-output
                                                                    (Double. (double sampling-probability))
@@ -80,8 +145,9 @@
          (set-config [this map] (swap! configuration (fn [_] map)))
          (config [this] @config)
          (job [this] @job)
-         (output [this] (let [table (job-output @job)
-                              _ (.setTablePath table (str (.getTablePath table) ".tbl"))]
+         (output [this] (let [table (job-output @job)]
+                          (.setTablePath table (str (.getTablePath table) ".tbl"))
+                          (.setConfiguration table *conf*)
                           {:table table
                            :path (.getTablePath table)
                            :schema (table-obj-to-schema table)}))
@@ -96,6 +162,35 @@
 
 
 ;; vectorization of tables
+
+(defmethod job-info :vectorize-table [_]
+  "Transforms a table into a new table whose rows are stored as Mahout vectors stored in a sequence file in
+   HDFS file system
+   A list with the columns to be transformed into the vector components must be specified.
+
+   * Note:
+     Only numeric columns can be vectorized.
+     Rows containing null values for the selected columns will not be written in the output file.
+
+   * Options:
+     - directory-output     : directory where the output for this job will be stored.
+     - column-names         : list of the columns to be used to extract the values for the vectors.
+     - vector-type          : the type of Mahout vector that will be created, specified as a keyword.
+                              Possible values are:
+                              - dense                -> org.apache.mahout.math.DenseVector
+                              - sequential-sparse    -> org.apache.mahout.math.SequentialAccessSparseVector
+                              - random-access-sparse -> org.apache.mahout.math.RandomAccessSparseVector
+                              - sparse               -> org.apache.mahout.math.RandomAccessSparseVector
+     - table:               : table to be sampled
+
+   * Output Path:
+     Path to the HDFS file containing the vetorized rows.
+
+   * Output:
+     Returns a new Table map for vectorized rows. The table metadata has not yet been written to disk.
+
+   * Visualization:
+     None.")
 
 (defn vectorize-table-job
   ([directory-output column-names vector-type table]
