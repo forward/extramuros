@@ -150,8 +150,9 @@
          (output-path [this] (job-output-file @job))
          (output-path [this options] (job-output-file @job))
          (visualize [this] (histogram
-                            (reduce concat (map (fn [[v n]] (repeat n v))
-                                                (job-output-pairs @job)))
+                            (apply concat (map  (fn [[v n]] (repeat n v)) (job-output-pairs @job)))
+                            ;(reduce concat (map (fn [[v n]] (repeat n v))
+                            ;                    (job-output-pairs @job)))
                             :x-label "value"
                             :y-label "frequency"
                             :title (str "frequency distribution for column " (:column @configuration))))

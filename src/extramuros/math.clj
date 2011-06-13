@@ -16,6 +16,12 @@
 (defn cluster-radius-vector
   ([c] (vector-to-seq (.getRadius c))))
 
+(defn cluster-center-vector-obj
+  ([c] (.getCenter c)))
+
+(defn cluster-distance-to-cluster
+  ([c1 c2]
+     (.getDistanceSquared (cluster-center-vector-obj c1) (cluster-center-vector-obj c2))))
 
 (defn pair-to-cluster
   ([[k c]] {:id (cluster-id c)
@@ -27,6 +33,9 @@
 
 (defn cluster-radius
   ([c] (.getRadius c)))
+
+(defn cluster-num-points
+  ([c] (.getNumPoints c)))
 
 ;; distance measures
 

@@ -13,10 +13,11 @@
            [org.jzy3d.chart.controllers.mouse ChartMouseController]
            [org.jzy3d.chart.controllers.keyboard ChartKeyController]))
 
-(def *colors* [(Color. (java.awt.Color/RED)) (Color. (java.awt.Color/GREEN)) (Color. (java.awt.Color/BLUE))
-               (Color. (java.awt.Color/CYAN))(Color. (java.awt.Color/MAGENTA)) (Color. (java.awt.Color/ORANGE))
-               (Color. (java.awt.Color/PINK)) (Color. (java.awt.Color/GRAY)) (Color. (java.awt.Color/BLACK))
-               (Color. (java.awt.Color/YELLOW))])
+(def *colors* [(Color. (java.awt.Color/BLUE)) (Color. (java.awt.Color/GREEN)) (Color. (java.awt.Color/RED)) (Color. (java.awt.Color/BLACK)) (Color. (java.awt.Color/CYAN))
+               (Color. (java.awt.Color/YELLOW)) (Color. (java.awt.Color/MAGENTA))])
+;(def *colors* [(Color. (java.awt.Color/RED)) (Color. (java.awt.Color/GREEN)) (Color. (java.awt.Color/BLUE))
+;               (Color. (java.awt.Color/MAGENTA)) (Color. (java.awt.Color/ORANGE))
+;               (Color. (java.awt.Color/PINK)) (Color. (java.awt.Color/GRAY)) (Color. (java.awt.Color/BLACK))])
 
 (defn random-scatter
   ([num-points width heigh title]
@@ -90,11 +91,13 @@
 
 (defn view-3d
   ([plot]
+     (view-3d plot "3d scatter plot"))
+  ([plot title]
      (let [chart (Chart.)]
        (do (.add (.getScene chart) plot)
            (.addController chart (ChartMouseController.))
            (.addController chart (ChartKeyController.))
-           (ChartLauncher/openChart chart (Rectangle. 500 400) "3D scatter plot")))))
+           (ChartLauncher/openChart chart (Rectangle. 500 400) title)))))
 
 ;; (def *results* (proclus-algorithm-output "hdfs://localhost:9000/user/antonio/pro_clus/result/clusters.txt","hdfs://localhost:9000/user/antonio/pro_clus/clustered_points/part-r-00000"))
 ;; (medoid-dimensions *results*)

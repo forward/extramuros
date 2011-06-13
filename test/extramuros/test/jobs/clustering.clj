@@ -60,3 +60,36 @@
         (doseq [chart (visualize job)]
           (is (= org.jfree.chart.JFreeChart (class chart))))
         (delete (output-path job))))))
+
+(deftest kmeans-native
+  (println "\n*** kmeans-native")
+  (with-test-file "test_assets/test_clustering.csv" (def-schema :x *double* :y *double*)
+    (fn [dataset]
+      (let [job (make-job :canopy)]
+        (set-config job {:output-path "test_assets/kmeans/canopy"
+                         :distance :euclidean
+                         :t1 0.6
+                         :t2 0.4
+                         :should-cluster true
+                         :table dataset})
+        (run job)
+        (let [input-points-table (output job :clustered-points-table) ; cannot be used because output is a weighted vector!
+              input-points-table dataset
+              input-clusters-path (output-path job :clusters)
+              job (make-job :kmeans)]
+          (set-config job {:output-path "test_assets/kmeans/kmeans"
+                           :input-clusters-path input-clusters-path
+                           :distance :euclidean
+                           :convergence-delta 0.001
+                           :num-iterations 5
+                           :should-cluster true
+                           :table input-points-table})
+          (run job)
+          (is (= 2 (count (output job :clusters))))
+          (is (= 3 (count (get (output job :folded-points) "0"))))
+          (is (= 3 (count (get (output job :folded-points) "1"))))
+          (is (= 2 (count (output job :folded-points))))
+          (is (= org.jfree.chart.JFreeChart (class (visualize job {:x-label "x" :y-label "y"}))))
+          (doseq [chart (visualize job)]
+            (is (= org.jfree.chart.JFreeChart (class chart)))))        
+        (delete (output-path job))))))
