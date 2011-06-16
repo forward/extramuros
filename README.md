@@ -73,6 +73,8 @@ In the following example basic stats for the iris table are computed and then vi
      
     (view (visualize *stats*))
 
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/stats.png'></img>
+
 The output of this command should be a table showing the main statistics for the table
 
 <img src=''></img>
@@ -93,6 +95,7 @@ The resulting table is a projection of the selected columns in the normalization
     (write-table (output *normalized*))
      
     (def *table* (open-dataset "input/iris/normalized.tbl.tbl"))
+
 
 
 After normalizing we plot the frequency distribution for the normalized values. We use again the Incanter *view* function to display the charts:
@@ -128,12 +131,15 @@ After the clustering we use Clojure to print the number of points assigned to ea
     ;; check number of points per cluster
     (println  (map (fn [[k ps]] [k (count ps)])
                (output *kmeans* :folded-points)))
-     
+
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/freqs.png'></img>     
 
 We can plot the relationship between the columns of the clustered points using the *visualize* function of the job interface and the Incanter *view* function in the same way as we did with the previous jobs
 
     ;; we visualize the clusters in all the dimensions
     (map view (visualize *kmeans*))
+
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/clusters2d.png'></img>
 
 It is also possible to explore the relationship between thre dimensions of the clustered data using the *extramuros.visualization.clustering/plot-3d-clustering-output* function and the *extramuros.visualization.3d/view-3d* function:
 
@@ -141,6 +147,8 @@ It is also possible to explore the relationship between thre dimensions of the c
     (view-3d
      (plot-3d-clustering-output *kmeans* "sepal_length" "sepal_width" "petal_width")
      "some dimensions")
+
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/clusters3d.png'></img>
 
 Finally, we can compute some information about the quality of the clusters computing the Davies-Bouldin index.
 
