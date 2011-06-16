@@ -77,7 +77,6 @@ In the following example basic stats for the iris table are computed and then vi
 
 The output of this command should be a table showing the main statistics for the table
 
-<img src=''></img>
 
 The following job normalizes the data using the min and max values for each column computed in the previous task. The output is written in a new table using the *extramuros.datasets/write-table* function.
 The resulting table is a projection of the selected columns in the normalization job.
@@ -108,6 +107,8 @@ After normalizing we plot the frequency distribution for the normalized values. 
                               :table *table*})]
         (view (visualize *freqs*))))
 
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/freqs.png'></img>     
+
 At this point we run the clustering algorithm chaining the execution of the canopy Mahout clustering algorithm with the Mahout implementation of KMeans.
 After the clustering we use Clojure to print the number of points assigned to each cluster
 
@@ -131,8 +132,6 @@ After the clustering we use Clojure to print the number of points assigned to ea
     ;; check number of points per cluster
     (println  (map (fn [[k ps]] [k (count ps)])
                (output *kmeans* :folded-points)))
-
-<img src='https://github.com/forward/extramuros/raw/master/readme_files/freqs.png'></img>     
 
 We can plot the relationship between the columns of the clustered points using the *visualize* function of the job interface and the Incanter *view* function in the same way as we did with the previous jobs
 
