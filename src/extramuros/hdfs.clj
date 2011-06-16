@@ -1,5 +1,5 @@
 (ns ^{:doc "Functions for raw interaction with the HDFS cluster"
-      :author "antonio"}
+      :author "Antonio Garrote"}
   extramuros.hdfs
   (:import [org.apache.hadoop.conf Configuration] 
            [org.apache.hadoop.fs FileSystem Path]

@@ -29,7 +29,7 @@ import java.util.ArrayList;
  */
 
 /**
- * The stats.normalization Job normalize the value of a table for certain
+ * The stats.normalization JobBack normalize the value of a table for certain
  * columns writing the normalized and vectorized output in a new table.
  */
 public class Job extends ExtramurosJob {

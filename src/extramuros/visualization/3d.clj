@@ -1,4 +1,6 @@
-(ns extramuros.visualization.3d
+(ns ^{:doc "3D graphical primitives"
+      :author "Antonio Garrote"}
+  extramuros.visualization.3d
   (:use [extramuros.jobs core]
         [extramuros.visualization core]
         [extramuros math]
@@ -13,46 +15,25 @@
            [org.jzy3d.chart.controllers.mouse ChartMouseController]
            [org.jzy3d.chart.controllers.keyboard ChartKeyController]))
 
-(def *colors* [(Color. (java.awt.Color/BLUE)) (Color. (java.awt.Color/GREEN)) (Color. (java.awt.Color/RED)) (Color. (java.awt.Color/BLACK)) (Color. (java.awt.Color/CYAN))
-               (Color. (java.awt.Color/YELLOW)) (Color. (java.awt.Color/MAGENTA))])
-;(def *colors* [(Color. (java.awt.Color/RED)) (Color. (java.awt.Color/GREEN)) (Color. (java.awt.Color/BLUE))
-;               (Color. (java.awt.Color/MAGENTA)) (Color. (java.awt.Color/ORANGE))
-;               (Color. (java.awt.Color/PINK)) (Color. (java.awt.Color/GRAY)) (Color. (java.awt.Color/BLACK))])
-
-(defn random-scatter
-  ([num-points width heigh title]
-     (let [chart (Chart.)
-           points (make-array Coord3d num-points)
-           colors (make-array Color num-points)]
-       (doseq [i (range 0 num-points)]
-         (do
-           (aset points i (Coord3d. (rand 100) (rand 100) (rand 100)))
-           (aset colors i (Color. (int (rand 255)) (int (rand 255)) (int (rand 255)) 5))))
-       (let [scatter (Scatter. points colors)]
-         (.add (.getScene chart) scatter)
-         (ChartLauncher/openChart chart (Rectangle. width heigh) title)))))
+(def *colors* [(Color. (java.awt.Color/BLUE)) (Color. (java.awt.Color/RED)) (Color. (java.awt.Color/BLACK)) (Color. (java.awt.Color/CYAN)) (Color. (java.awt.Color/YELLOW)) (Color. (java.awt.Color/MAGENTA)) (Color. (java.awt.Color/GREEN))])
 
 (defn compute-3d-scatter-plot
   ([clustering-output dims]
      (let [chart (Chart.)
            colors (take (count (:clusters clustering-output)) (cycle *colors*))
-           ;_ (println (str "COLORS: " (vec colors)))
            cluster-colors (first (reduce (fn [[h cs] cluster] [(assoc h (:id cluster) (first cs))
                                                               (rest cs)])
                                          [{} colors]
                                          (:clusters clustering-output)))
-           ;_ (println (str "CLUSTER COLORS: " (vec cluster-colors)))
            points-colors (map (fn [point]
                                 (if (= (.indexOf (:cluster point) "OUTLIER") 0)
                                   nil
-                                  (do ;(println (str " -> " (get cluster-colors (:cluster point)) " FROM " cluster-colors " FOR " (:cluster point)))
-                                      [(Coord3d. (float (nth (:components point) (nth dims 0)))
+                                  (do [(Coord3d. (float (nth (:components point) (nth dims 0)))
                                                  (float (nth (:components point) (nth dims 1)))
                                                  (float (nth (:components point) (nth dims 2))))
                                        (.clone (get cluster-colors (:cluster point)))])))
                               (:points clustering-output))
            points-colors (filter (comp not nil?) points-colors)
-           ;_ (println (str "POINTS COLORS (" (count points-colors) ") \r\n" points-colors))
            [points-array colors-array] (reduce (fn [[pa ca i] [p c]] (do (aset pa i p)
                                                                         (aset ca i c)
                                                                         [pa ca (inc i)]))
@@ -90,6 +71,7 @@
        (Scatter. points-array colors-array))))
 
 (defn view-3d
+  "Displays a 3D plot"
   ([plot]
      (view-3d plot "3d scatter plot"))
   ([plot title]
@@ -98,7 +80,3 @@
            (.addController chart (ChartMouseController.))
            (.addController chart (ChartKeyController.))
            (ChartLauncher/openChart chart (Rectangle. 500 400) title)))))
-
-;; (def *results* (proclus-algorithm-output "hdfs://localhost:9000/user/antonio/pro_clus/result/clusters.txt","hdfs://localhost:9000/user/antonio/pro_clus/clustered_points/part-r-00000"))
-;; (medoid-dimensions *results*)
-;; (visualize-3d-plot (compute-3d-scatter-plot *results* [2 3 4]))

@@ -1,5 +1,5 @@
 (ns ^{:doc "Math utilities and mathematical types manipulation"
-      :author "antonio"}
+      :author "Antonio Garrote"}
   extramuros.math
   (:use [extramuros.hdfs :only [vector-to-seq]])
   (:import [org.apache.mahout.clustering Cluster]
@@ -47,6 +47,7 @@
 
 ;; utils
 (defn build-dimensions
+  "Compute pairs or triples of dimensions avoiding same-coordinates tuples"
   ([xs ys]
      (->> (for [x xs y ys] [x y])
           (map sort)

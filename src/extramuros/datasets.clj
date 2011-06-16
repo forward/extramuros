@@ -285,7 +285,7 @@
   ([column-name table]
      (numeric-type? (table-column-type column-name table))))
 
-(defn table-numeric-rows
+(defn table-numeric-columns
   "Returns the numeric columns for a table"
   ([table]
      (let [columns (table-ordered-columns table)]

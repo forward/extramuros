@@ -2,7 +2,7 @@
       :author "Antonio Garrote"}
   extramuros.jobs.stats-column
   (:use [extramuros hdfs]
-        [extramuros.datasets :only [open-dataset table-numeric-rows
+        [extramuros.datasets :only [open-dataset table-numeric-columns
                                     table-ordered-columns]]
         [extramuros.datasets :only [table-obj-to-schema]]
         [extramuros.jobs core])
@@ -189,7 +189,7 @@
 (defn- table-stats-job
   ([table-or-path output-directory]
      (let [table (table-map-from-table-map-or-path table-or-path)
-           numeric-columns (table-numeric-rows table)
+           numeric-columns (table-numeric-columns table)
            output-directory (path output-directory)]
        ;; paths
        (println "checking directory")

@@ -148,16 +148,20 @@ public class Job extends ExtramurosJob {
             boolean  initMax = false;
             for(Cluster toCluster : clustersMap.values()) {
                 if(cluster.getId() != toCluster.getId()) {
-                    if(!initMax) {
-                        initMax = true;
-                        max = (intraClusterDistances.get(cluster.getId()) + intraClusterDistances.get(toCluster.getId()))
-                                /(interClusterDistances.get(cluster.getId()).get(toCluster.getId()));
-                    } else {
-                        double value = (intraClusterDistances.get(cluster.getId()) + intraClusterDistances.get(toCluster.getId()))
-                                /(interClusterDistances.get(cluster.getId()).get(toCluster.getId()));
-                        if(value > max) {
-                            max = value;
+                    try {
+                        if(!initMax) {
+                            initMax = true;
+                            max = (intraClusterDistances.get(cluster.getId()) + intraClusterDistances.get(toCluster.getId()))
+                                    /(interClusterDistances.get(cluster.getId()).get(toCluster.getId()));
+                        } else {
+                            double value = (intraClusterDistances.get(cluster.getId()) + intraClusterDistances.get(toCluster.getId()))
+                                    /(interClusterDistances.get(cluster.getId()).get(toCluster.getId()));
+                            if(value > max) {
+                                max = value;
+                            }
                         }
+                    } catch(Exception e){
+                        // some null value, possible in some algorithms like Dirichlet
                     }
                 }
             }

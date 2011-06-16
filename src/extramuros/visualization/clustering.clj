@@ -1,4 +1,6 @@
-(ns extramuros.visualization.clustering
+(ns ^{:doc "functions to visualize the output of the clustering algorithms"
+      :author "Antonio Garrote"}
+  extramuros.visualization.clustering
   (:use [extramuros.visualization core]
         [extramuros.visualization.3d]
         [extramuros math datasets]

@@ -1,4 +1,6 @@
-(ns extramuros.visualization.core
+(ns ^{:doc "Graphical plotting primitives"
+      :author "Antonio Garrote"}
+  extramuros.visualization.core
   (:use [incanter core charts])
   (:use [extramuros.jobs core]
         [extramuros math]

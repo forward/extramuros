@@ -52,3 +52,28 @@
 
 (defn show-job-info
   ([job-name] (println (job-info job-name))))
+
+(defn key-to-class-str
+  "Transforms a Clojure keyword into the string with the name of the Java class it represents"
+  ([key]
+     (condp = key
+         :gaussian  "org.apache.mahout.clustering.dirichlet.models.GaussianClusterDistribution"
+         :dense     "org.apache.mahout.math.DenseVector"
+         :sparse    "org.apache.mahout.math.DenseVector"
+         :euclidean "org.apache.mahout.common.distance.EuclideanDistanceMeasure"
+         :sparse    "org.apache.mahout.math.RandomAccessSparseVector"
+         :sparse-random "org.apache.mahout.math.RandomAccessSparseVector"
+         :sparse-sequential "org.apache.mahout.math.SequentialAccessSparseVector")))
+
+(defn key-to-class
+  "Transforms a Clojure keyword into the Java class it represents"  
+  ([key]
+     (Class/forName (key-to-class-str key))))
+
+(defn run-job
+  "Creates, configure and executes a job"
+  ([job-name options]
+     (let [job (make-job job-name)]
+       (set-config job options)
+       (run job)
+       job)))

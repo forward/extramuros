@@ -1,6 +1,7 @@
 package extramuros.java.jobs.utils;
 
 
+import extramuros.java.jobs.clustering.proclus.algorithm.ClusterSet;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -13,7 +14,6 @@ import org.apache.mahout.math.Vector;
 import org.apache.mahout.math.VectorWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.dc.pr.PathStroker;
 
 import java.io.IOException;
 import java.util.*;
@@ -207,7 +207,17 @@ class ClusteredPointsIterator implements Iterator<Pair<String,Vector>> {
 public class ClusterUtils {
     public static Iterator<Cluster> clusterIterator(Path clustersDirectory, Configuration configuration) {
         try {
-         return new ClusterIterator(clustersDirectory,configuration);
+            Iterator<Pair<Writable, Writable>> iterator = TableUtils.directorySeqIterator(clustersDirectory, configuration);
+            if(iterator.hasNext()) {
+                Writable secondComp = iterator.next().getSecond();
+                if(secondComp instanceof ClusterSet) {
+                    return ((ClusterSet)secondComp).iterator();
+                } else {
+                    return new ClusterIterator(clustersDirectory,configuration);
+                }
+            } else {
+                return new ClusterIterator(clustersDirectory,configuration);
+            }
         } catch (Exception e) {
             return null;
         }
@@ -238,7 +248,13 @@ public class ClusterUtils {
                 new Comparator<Path>() {
 
                     public int compare(Path path1, Path path2) {
-                        return -path1.toUri().getPath().compareTo(path2.toUri().getPath());
+                        String[] parts1 = path1.toUri().getPath().split("-");
+                        String[] parts2 = path2.toUri().getPath().split("-");
+
+                        int parts1Int = Integer.parseInt(parts1[parts1.length-1]);
+                        int parts2Int = Integer.parseInt(parts2[parts2.length-1]);
+
+                        return - (new Integer(parts1Int)).compareTo(new Integer(parts2Int));
                     }
                 });
 
