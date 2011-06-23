@@ -243,6 +243,38 @@
 
 ;; filter
 
+(defmethod job-info :filter-table [_]
+  "Filter the rows in a table stored in the HDFS file system using the provided predicate.
+
+   * Note:
+     Is possible to replicate this job from pure Java code extending the abstract AbstractFilterMapper
+     class and implementing the abstract filter method.
+
+   * Options:
+     - directory-output     : directory where the output for this job will be stored.
+     - filter-function      : a clojure expression that will be used to decide if the rows in the table will
+                              be filtered.
+                              The filter function must consist in a lambda function that receives a single parameter,
+                              the row to be filtered, and returning true if the row must be written in the ourput
+                              or false if the row must be removed.
+                              The macro *clojure* can be used to build a filter using variables in the
+                              closure where the invokation takes place.
+                              e.g:
+                              (let [min-val 1
+                                    max-val 100]
+                                (clojure `(fn [row] (and (> (get row \"val\") ~min-val)
+                                                        (< (get row \"val\") ~max-val)))))
+     - table:               : table to be filtered
+
+   * Output Path:
+     Path to the HDFS file containing the filtered rows.
+
+   * Output:
+     Returns a new Table map for the filtered rows. The table metadata has not yet been written to disk.
+
+   * Visualization:
+     None.")
+
 (defn filter-clojure-job
   ([directory-output function-str table]
      (let [job (extramuros.java.jobs.file.filter.Job. (path directory-output)
