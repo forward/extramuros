@@ -191,6 +191,10 @@ public class VectorSeqTableAdapter extends AbstractTableAdapter<Writable, Double
         }
     }
 
+    public Class<? extends Writable> getRowClass() {
+        return VectorWritable.class;
+    }
+
     public void write(DataOutput dataOutput) throws IOException {
         getHeader().write(dataOutput);
         Text tmp = new Text(getRowsPath());

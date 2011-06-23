@@ -208,6 +208,10 @@ public class TextFileTableAdapter extends AbstractTableAdapter<Text, String> imp
         }
     }
 
+    public Class<? extends Writable> getRowClass() {
+        return Text.class;
+    }
+
     public void write(DataOutput dataOutput) throws IOException {
         getHeader().write(dataOutput);
 

@@ -1,7 +1,6 @@
 package extramuros.java.formats;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Writable;
 
 import java.io.IOException;
@@ -24,4 +23,5 @@ public interface AbstractTable extends Writable, Iterable<Row> {
     public boolean isAdapter();
     public AbstractTable clone();
     public boolean save();
+    public Class<? extends Writable> getRowClass();
 }

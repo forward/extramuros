@@ -1,6 +1,7 @@
 package extramuros.java.jobs.utils;
 
 import extramuros.java.formats.AbstractTable;
+import extramuros.java.formats.Row;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -11,8 +12,14 @@ import org.apache.mahout.common.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import clojure.lang.RT;
+import clojure.lang.Compiler;
+import clojure.lang.Var;
+
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -257,4 +264,56 @@ public class TableUtils {
         return id;
     }
 
+    public static Object evaluateClojureExpression(String clojureExpression, String resultVar) throws Exception {
+        Compiler.load(new StringReader(clojureExpression));
+
+        Var resultVarObj = RT.var("user",resultVar);
+
+        return resultVarObj.get();
+    }
+
+    public static Object applyClojureFunctionToRow(String clojureFunction, Row aRow) throws Exception {
+        HashMap<String,Object> rowMap = new HashMap<String, Object>();
+        for(String columnName : aRow.getColumnsNames()) {
+            Object columnValue = aRow.valueForColumn(columnName);
+            rowMap.put(columnName,columnValue);
+        }
+
+        RT.var("extramurosrt", "*row*", rowMap);
+        String functionEvaluation = "(ns extramurosrt)(def *row-result* (apply "+clojureFunction+" [*row*]))";
+
+        //System.out.println("EVALUATING:\n\n"+functionEvaluation+"\n\n");
+
+        Compiler.load(new StringReader(functionEvaluation));
+
+        return RT.var("extramurosrt","*row-result*").get();
+    }
+
+    public static boolean defineFunction(String functionName, String functionLiteral) {
+
+        try {
+            Compiler.load(new StringReader("(ns extramurosrt) (def "+functionName+" "+functionLiteral+")"));
+        } catch (Exception e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static Object applyDefinedFunctionToRow(String functionName, AbstractTable table, Row aRow) throws Exception {
+        aRow.setColumnsNames(table.getHeader().getColumnNames());
+
+        HashMap<String,Object> rowMap = new HashMap<String, Object>();
+        for(String columnName : aRow.getColumnsNames()) {
+            Object columnValue = aRow.valueForColumn(columnName);
+            rowMap.put(columnName,columnValue);
+        }
+
+        return RT.var("extramurosrt",functionName).invoke(rowMap);
+    }
+
+    public static Object applyClojuFunctionToRow(String clojureFunction, AbstractTable table, Row aRow) throws Exception {
+        aRow.setColumnsNames(table.getHeader().getColumnNames());
+        return applyClojureFunctionToRow(clojureFunction,aRow);
+    }
 }

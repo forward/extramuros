@@ -77,3 +77,10 @@
        (set-config job options)
        (run job)
        job)))
+
+(defmacro clojure [& args]
+  `(clojure-fn ~@args ~*ns*))
+
+(defn clojure-fn [f ns]
+  (let [ns-name (str ns "/")]
+    (.replace (str f) ns-name "")))

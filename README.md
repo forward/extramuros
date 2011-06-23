@@ -1,7 +1,7 @@
 #Extramuros
 
 Extramuros is a library that makes easier to work with machine learning algorithms in Hadoop. It is built on top of Apache Mahout and uses Clojure as a convenient scripting language.
-At this moment the library only covers clustering algorithms.
+At this moment the library only covers clustering algorithms and some other statistical utilities.
 
 ##Installation
 
@@ -12,6 +12,7 @@ Nevertheless, some dependencies must be installed by hand:
 
 - Hadoop:  the library has been tested with Apache Hadoop 0.20 and Clouder Hadoop distribution 3 beta 4.
 - Mahout:  the library has been tested with Mahout 0.5
+- Clojure: clojure 1.2 and clojure.contrib are required to execute clojure expressions in the Hadoop jobs.
 - jzy3d:   is used by the visualization code: (http://code.google.com/p/jzy3d/), the java library and the native library must be present in the path.
                                                  
                                                  
@@ -138,7 +139,7 @@ We can plot the relationship between the columns of the clustered points using t
     ;; we visualize the clusters in all the dimensions
     (map view (visualize *kmeans*))
 
-<img src='https://github.com/forward/extramuros/raw/master/readme_files/clusters2d.png'></img>
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/clusters3d.png'></img>
 
 It is also possible to explore the relationship between thre dimensions of the clustered data using the *extramuros.visualization.clustering/plot-3d-clustering-output* function and the *extramuros.visualization.3d/view-3d* function:
 
@@ -175,6 +176,7 @@ Table manipulation (extramuros.jobs.file)
 - sample-file
 - probabilistic-sample-table
 - vectorize-table
+- filter-table
 
 Clustering (extramuros.jobs.clustering)
 

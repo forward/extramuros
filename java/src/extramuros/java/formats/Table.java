@@ -5,6 +5,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.*;
+import org.apache.mahout.common.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,62 +18,30 @@ import java.util.Iterator;
 
 class RowIterator implements Iterator<Row> {
 
-    protected SequenceFile.Reader reader;
+    protected Iterator<Pair<Writable,Writable>> reader;
     protected TableHeader header;
     protected Row lastRow;
 
     private static final Logger log = LoggerFactory.getLogger(RowIterator.class);
 
-    RowIterator(SequenceFile.Reader reader, TableHeader header) {
+    RowIterator(Iterator<Pair<Writable,Writable>> reader, TableHeader header) {
         this.reader = reader;
         this.header = header;
         this.lastRow = null;
     }
 
     public boolean hasNext() {
-        if(lastRow != null) {
-            return true;
-        } else {
-            lastRow = readNextRow();
-            return lastRow != null;
-        }
-    }
-
-    private Row readNextRow() {
-        try {
-            Writable key = (Writable) reader.getKeyClass().newInstance();
-            Row row = new Row();
-            row.setSchema(header.getColumnNames(), header.getColumnTypes());
-
-            if(reader.next(key,row)) {
-                return row;
-            } else {
-                org.apache.mahout.common.IOUtils.quietClose(reader);
-                return null;
-            }
-        } catch (InstantiationException e) {
-            log.error(e.getMessage());
-            log.error("InstantationException ERROR READING ROW",e);
-            return null;
-        } catch (IllegalAccessException e) {
-            log.error(e.getMessage());
-            log.error("IllegalAccessException ERROR READING ROW",e);
-            return null;
-        } catch (IOException e) {
-            log.error(e.getMessage());
-            log.error("IOException ERROR READING ROW",e);
-            return null;
-        }
+       return reader.hasNext();
     }
 
     public Row next() {
-        if(lastRow!=null){
-            Row tmp = lastRow;
-            lastRow = null;
-            return tmp;
+        Pair<Writable, Writable> pair = reader.next();
+        if(pair == null) {
+            return null;
         } else {
-            return readNextRow();
+           return (Row) pair.getSecond();
         }
+
     }
 
     public void remove() {
@@ -137,7 +106,7 @@ public class Table implements AbstractTable {
 
     public Iterator<Row> iterator() {
         try {
-            return new RowIterator(rowsReader(), getHeader());
+            return new RowIterator(TableUtils.directorySeqIterator(new Path(getRowsPath()), config), getHeader());
         } catch (IOException e) {
             return null;
         }
@@ -193,5 +162,9 @@ public class Table implements AbstractTable {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public Class<? extends Writable> getRowClass() {
+        return Row.class;
     }
 }

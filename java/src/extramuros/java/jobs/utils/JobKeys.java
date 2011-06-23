@@ -14,4 +14,5 @@ public interface JobKeys {
     public static String CLASS_NAME = "extramuros.java.jobs.class.name";
     public static String MIN_VALUES = "extramuros.java.jobs.stats.normalization.min_values";
     public static String MAX_VALUES = "extramuros.java.jobs.stats.normalization.max_values";
+    public static String FILTER_INFORMATION = "extramuros.java.jobs.file.filter_information";
 }
