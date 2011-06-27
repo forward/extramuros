@@ -290,3 +290,12 @@
   ([table]
      (let [columns (table-ordered-columns table)]
        (filter (fn [column-name] (table-numeric-row? column-name table)) columns))))
+
+(defn table-points-seq-for-column
+  "Returns the points for a column of the table as a Clojure sequence"
+  ([table column]
+     (let [column-position (table-column-position column table)
+           points (map (fn [row]
+                         (nth (row-to-seq row) column-position))
+                       (table-rows table))]
+       points)))

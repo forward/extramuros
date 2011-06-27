@@ -158,6 +158,87 @@ Finally, we can compute some information about the quality of the clusters compu
                                    {:clustering-job *kmeans*
                                     :output-path "input/iris/davies-bouldin"}))))
 
+##Table visualization
+
+The library implements a collection of functions to visualize the data stored in HDFS tables. 
+The functions receive the kind of visualization that must be plotted, the table to plot and a map with options.
+
+All the jobs can receive a *:sample* option with a sampling percentage. If this parameter is passed, the rows in the table will be sampled using the *probabilistic-sample-table* job and the sampled data will be the basis of the visualization.
+The sampled data will be stored in a temporal directory in the HDFS file system.
+
+### box plot
+
+Options:
+
+-title
+-legend
+-y-label
+-x-label
+-series-label
+-columns
+
+    (view-table :box-plot *table* {:columns ["sepal_length" "sepal_width"]})
+
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/box_plot.png'></img>
+
+### scatter plot
+
+Options:
+
+-title
+-legend
+-columns
+
+    (view-table :box-plot *table* {:columns ["sepal_length" "sepal_width"]})
+
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/scatter_plot.png'></img>
+
+### grouped scatter plot
+
+Options:
+
+-title
+-legend
+-columns
+
+    (view-table :scatter-plot-grouped *table* {:columns ["sepal_length" "sepal_width" "petal_width"]})
+
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/scatter_plot_grouped.png'></img>
+
+### frequencies histogram
+
+Options:
+
+-title
+-x-label
+-y-label
+-columns
+
+    (view-table :frequencies-histogram *table* {:columns ["sepal_length" "sepal_width"]})
+
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/frequences.png'></img>
+
+### scatter 3d
+
+Options:
+
+-columns
+
+    (view-table :scatter-3d *table* {:columns ["sepal_length" "sepal_width" "petal_width"]})
+
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/scatter_3d.png'></img>
+
+### parallel lines
+
+Options:
+
+-columns
+
+    (view-table :parallel-lines *table* {:columns ["sepal_length" "sepal_width" "petal_width"]})
+
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/parallel.png'></img>
+
+
 ##Implemented jobs
 
 This is a list of all the jobs currently included in the library. You can get all the information about how to use a job using the *extramuros.jobs.core/job-info* function.

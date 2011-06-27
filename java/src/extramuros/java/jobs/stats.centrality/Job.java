@@ -30,9 +30,9 @@ import java.util.HashMap;
 /**
  * The stats.centrality.JobOld class implements a Hadoop job that computes
  * the average, min value, max value and number of not null for a
- * column in a extramuros.java.Table column.
+ * column in a extramuros.java.extramuros.java.visualization.Table column.
  *
- * The Table object and the name of the column whose stats will be
+ * The extramuros.java.visualization.Table object and the name of the column whose stats will be
  * computed must be passed in the constructor of the class.
  */
 public class Job extends ExtramurosJob {

@@ -100,3 +100,20 @@
               (output (run-job :davies-bouldin-index
                                {:clustering-job *kmeans*
                                 :output-path "input/iris/davies-bouldin"}))))
+
+
+;; Visualization examples
+
+(view-table :box-plot *table* {:columns ["sepal_length" "sepal_width"]})
+
+(view-table :scatter-plot *table* {:columns ["sepal_length" "sepal_width"]})
+
+(view-table :scatter-plot-grouped *table* {:columns ["sepal_length" "sepal_width" "petal_width"]})
+
+(view-table :frequencies-histogram *table* {:columns ["sepal_length" "sepal_width"]})
+
+(view-table :scatter-3d *table* {:columns ["sepal_length" "sepal_width" "petal_width"]})
+
+(view-table :parallel-lines *table* {:columns ["sepal_length" "sepal_width" "petal_width"]})
+
+(view-table :parallel-lines *table* {:columns ["sepal_length" "sepal_width" "petal_width"] :sample 0.5})

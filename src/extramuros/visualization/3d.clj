@@ -5,7 +5,7 @@
         [extramuros.visualization core]
         [extramuros math]
         [extramuros.hdfs :only [*conf* path]]
-        [extramuros.datasets :only [table-obj-to-schema]])
+        [extramuros.datasets :only [table-obj-to-schema table-rows table-column-position]])
   (:import [java.awt Rectangle]
            [org.jzy3d.ui ChartLauncher]
            [org.jzy3d.plot3d.primitives Scatter]
@@ -75,8 +75,24 @@
   ([plot]
      (view-3d plot "3d scatter plot"))
   ([plot title]
-     (let [chart (Chart.)]
+     (let [chart (org.jzy3d.chart.Chart.)]
        (do (.add (.getScene chart) plot)
-           (.addController chart (ChartMouseController.))
-           (.addController chart (ChartKeyController.))
-           (ChartLauncher/openChart chart (Rectangle. 500 400) title)))))
+           (.addController chart (org.jzy3d.chart.controllers.mouse.ChartMouseController.))
+           (.addController chart (org.jzy3d.chart.controllers.keyboard.ChartKeyController.))
+           (org.jzy3d.ui.ChartLauncher/openChart chart (java.awt.Rectangle. 500 400) title)))))
+
+(defmethod view-table-dispatcher :scatter-3d
+  ([_ table options]
+     (if (:columns options)
+       (if (not= (count (:columns options)) 3)
+         (throw (Exception. "Three columns must be provided"))
+         (let [column-x (nth (:columns options) 0)
+               column-y (nth (:columns options) 1)
+               column-z (nth (:columns options) 2)]
+           (view-3d
+            (-> (scatter-3d-plot-for (table-rows table))
+                (plot-3-dimensions (table-column-position column-x table)
+                                   (table-column-position column-y table)
+                                   (table-column-position column-z table))
+                (build-3d-plot)))))
+       (throw (Exception. "Three columns from the table must be provided")))))

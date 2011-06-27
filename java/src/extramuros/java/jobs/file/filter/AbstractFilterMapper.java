@@ -72,7 +72,7 @@ public abstract class AbstractFilterMapper extends org.apache.hadoop.mapreduce.M
         try {
             table = TableUtils.readAbstractTable(tablePath, config);
         } catch (Exception e) {
-            log.error("Error reading Table in mapper ", e);
+            log.error("Error reading extramuros.java.visualization.Table in mapper ", e);
         }
 
         // filter information

@@ -75,6 +75,15 @@ public class TableHeader implements Writable {
         return -1;
     }
 
+    public boolean isColumnNumeric(int i) {
+        int type = getColumnTypes().get(i);
+        if(type == RowTypes.CATEGORICAL || type == RowTypes.STRING || type == RowTypes.NULL) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     public TableHeader clone() {
         return new TableHeader(getColumnNames(),getColumnTypes());
     }

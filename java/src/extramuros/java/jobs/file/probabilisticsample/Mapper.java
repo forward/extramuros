@@ -69,7 +69,7 @@ public class Mapper extends org.apache.hadoop.mapreduce.Mapper<Writable,Writable
         try {
             table = TableUtils.readAbstractTable(tablePath, config);
         } catch (Exception e) {
-            log.error("Error reading Table in mapper ",e);
+            log.error("Error reading extramuros.java.visualization.Table in mapper ",e);
         }
     }
 }

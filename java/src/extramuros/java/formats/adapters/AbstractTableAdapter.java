@@ -59,11 +59,11 @@ public abstract class AbstractTableAdapter<L,P> extends Mapper<Writable, L, Writ
         Path tablePath = new Path(config.get(JobKeys.PATH));
         log.info("Reading table from path: "+tablePath.toUri().getPath());
         try {
-            //Table table = TableUtils.readTable(tablePath,config);
+            //extramuros.java.visualization.Table table = TableUtils.readTable(tablePath,config);
             AbstractTable table = TableUtils.readAbstractTable(tablePath,config);
             this.tableHeader = table.getHeader();
         } catch (Exception e) {
-            log.error("Error reading Table in mapper ",e);
+            log.error("Error reading extramuros.java.visualization.Table in mapper ",e);
         }
     }
 }
