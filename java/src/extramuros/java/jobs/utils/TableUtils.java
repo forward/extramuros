@@ -2,6 +2,7 @@ package extramuros.java.jobs.utils;
 
 import extramuros.java.formats.AbstractTable;
 import extramuros.java.formats.Row;
+import extramuros.java.formats.RowTypes;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -18,10 +19,8 @@ import clojure.lang.Var;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.UUID;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * User: antonio
@@ -315,5 +314,39 @@ public class TableUtils {
     public static Object applyClojuFunctionToRow(String clojureFunction, AbstractTable table, Row aRow) throws Exception {
         aRow.setColumnsNames(table.getHeader().getColumnNames());
         return applyClojureFunctionToRow(clojureFunction,aRow);
+    }
+
+    public static Date parseDateAtColumn(Row row, int column, AbstractTable table) throws Exception {
+        if(table.getHeader().typeFor(table.getHeader().getColumnNames().get(column)) == RowTypes.DATE_TIME) {
+              Object tmp = row.getValues().get(column);
+
+            if(tmp instanceof String) {
+                // It has to be a formatted date string
+                String columnName = table.getHeader().getColumnNames().get(column);
+                String dateFormat = table.getHeader().getDateFormats().get(columnName);
+                SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
+
+                return sdf.parse((String) tmp);
+
+            } else {
+                // It must have been passed as UNIX time
+                return new Date((Long) tmp);
+            }
+
+        } else {
+            throw new Exception("The column "+column+" : "+table.getHeader().getColumnNames().get(column)+" is not of type DATE_TIME");
+        }
+    }
+
+    public static Date parseDateAtColumn(Row row, String columnName, AbstractTable table) throws Exception {
+        int i = 0;
+        for(String column : table.getHeader().getColumnNames()) {
+            if(column.compareTo(columnName) == 0) {
+                return parseDateAtColumn(row, i, table);
+            }
+            i++;
+        }
+
+        throw new Exception("The column "+columnName+" could not been found to parse DATE_TIME value");
     }
 }

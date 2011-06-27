@@ -69,6 +69,17 @@
     (is (= "b" (nth columns 1)))
     (is (= "c" (nth columns 2)))))
 
+(deftest test-make-table-header-with-dates
+  (let [schema (def-schema :a *integer* :b *string* :c *date-time*)
+        date-formats {:c "mm-dd-yyyy"}
+        header (make-table-header schema date-formats)
+        columns (.getColumnNames header)
+        date-formats (.getDateFormats header)]
+    (is (= "a" (nth columns 0)))
+    (is (= "b" (nth columns 1)))
+    (is (= "c" (nth columns 2)))
+    (is (= "mm-dd-yyyy" (.get date-formats "c")))))
+
 (deftest test-import-dataset
   (let [test-file-schema (def-schema :name *string* :columna *integer* :columnb *float*)]
     (when (exists? "test_assets/imported_out.csv") (delete "test_assets/imported_out.csv"))
@@ -77,6 +88,19 @@
       (is (exists? "test_assets/imported_out.csv"))
       (is (exists? "test_assets/imported_out.csv"))
       (is (= 3 (count (table-rows dataset)))))
+    (when (exists? "test_assets/imported_out.csv") (delete "test_assets/imported_out.csv"))
+    (when (exists? "test_assets/imported_out.csv.rows") (delete "test_assets/imported_out.csv.rows"))))
+
+(deftest test-import-dataset-date-times
+  (let [test-file-schema (def-schema :name *string* :columna *integer* :columnb *date-time*)]
+    (when (exists? "test_assets/imported_out.csv") (delete "test_assets/imported_out.csv"))
+    (when (exists? "test_assets/imported_out.csv.rows") (delete "test_assets/imported_out.csv.rows"))
+    (let [dataset (import-dataset "test_assets/test_input_dates.tsv" "test_assets/imported_out.csv" test-file-schema :date-formats {:columnb "dd-mm-yyyy"})]
+      (is (= "dd-mm-yyyy" (.. (:table dataset) (getHeader) (getDateFormats) (get "columnb"))))
+      (is (exists? "test_assets/imported_out.csv"))
+      (is (exists? "test_assets/imported_out.csv"))
+      (is (= 3 (count (table-rows dataset))))
+      (is (= "01-05-1982" (nth (row-to-seq (first (table-rows dataset))) 2))))
     (when (exists? "test_assets/imported_out.csv") (delete "test_assets/imported_out.csv"))
     (when (exists? "test_assets/imported_out.csv.rows") (delete "test_assets/imported_out.csv.rows"))))
 
@@ -180,6 +204,26 @@
     (when (exists? "test_assets/test.txt") (delete "test_assets/test.txt"))
     (when (exists? "test_assets/test.txt.out") (delete "test_assets/test.txt.out"))))
 
+(deftest test-wrap-text-dataset-dates
+  (when (exists? "test_assets/test.txt") (delete "test_assets/test.txt"))
+  (let [test-file-schema (def-schema :name *string* :columna *integer* :columnb *date-time*)
+        fsos (.create (FileSystem/get *conf*) (path "test_assets/test.txt"))
+        wrtr (java.io.PrintWriter. fsos)]
+    (.println wrtr "\"one\",1,01/05/1982")
+    (.println wrtr "\"two\",2,12/04/1984")
+    (.flush wrtr)
+    (.close wrtr)
+    (let [table (wrap-dataset :text "test_assets/test.txt" "test_assets/test.txt.out" test-file-schema {:separator "," :date-formats {:columnb "dd/mm/yyyy"}})]
+      (is (= 2 (count (table-rows table))))
+      (is (= "dd/mm/yyyy" (.. (:table table) (getHeader) (getDateFormats) (get "columnb"))))
+      (is (= "01/05/1982" (nth (row-to-seq (first (table-rows table))) 2)))
+      (is (= 378691500000
+             (.getTime (parse-date-time (nth (row-to-seq (first (table-rows table))) 2)
+                                        "columnb"
+                                        table)))))
+    (when (exists? "test_assets/test.txt") (delete "test_assets/test.txt"))
+    (when (exists? "test_assets/test.txt.out") (delete "test_assets/test.txt.out"))))
+
 (deftest test-wrap-text-dataset-with-nulls
   (when (exists? "test_assets/test.txt") (delete "test_assets/test.txt"))
   (let [test-file-schema (def-schema :name *string* :columna *integer* :columnb *float*)
@@ -260,4 +304,5 @@
         (is (nil? (nth third-row 2)))))
     (when (exists? "test_assets/test.txt") (delete "test_assets/test.txt"))
     (when (exists? "test_assets/test.txt.out") (delete "test_assets/test.txt.out"))))
+
 

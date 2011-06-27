@@ -246,6 +246,13 @@ public class VectorSeqTableAdapter extends AbstractTableAdapter<Writable, Double
                         Long number = new Long(part.longValue());
                         values[position] = number;
                     }
+                } else if (type == RowTypes.DATE_TIME) {
+                    if(part == null) {
+                        values[position] = null;
+                    } else {
+                        Double number = part;
+                        values[position] = number;
+                    }
                 } else {
                     values[position] = part.toString();
                 }

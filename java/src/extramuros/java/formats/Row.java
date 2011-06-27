@@ -80,6 +80,9 @@ public class Row implements Writable, WritableComparable<Row> {
                 } else if (type == RowTypes.INTEGER) {
                     IntWritable tmp = new IntWritable((Integer) value);
                     tmp.write(dataOutput);
+                } else if(type == RowTypes.DATE_TIME) {
+                    Text tmp = new Text((String) value);
+                    tmp.write(dataOutput);
                 }
             }
         }
@@ -130,7 +133,7 @@ public class Row implements Writable, WritableComparable<Row> {
                     LongWritable tmp = new LongWritable();
                     tmp.readFields(dataInput);
                     values.add(tmp.get());
-                } else if (type == RowTypes.STRING || type == RowTypes.CATEGORICAL) {
+                } else if (type == RowTypes.STRING || type == RowTypes.CATEGORICAL || type == RowTypes.DATE_TIME) {
                     Text tmp = new Text();
                     tmp.readFields(dataInput);
                     values.add(tmp.toString());

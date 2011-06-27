@@ -16,6 +16,7 @@
 (def *integer* RowTypes/INTEGER)
 (def *long* RowTypes/LONG)
 (def *categorical* RowTypes/CATEGORICAL)
+(def *date-time* RowTypes/DATE_TIME)
 (def *null* RowTypes/NULL)
 
 (defn numeric-type?
@@ -25,6 +26,10 @@
                   (= type *integer*)
                   (= type *long*))
             true false)))
+
+(defn date-time-type?
+  "Checks if a datum is of kind date-time"
+  ([type] (= type *date-time*)))
 
 (defn def-schema
   "Defines a new schema from a sequence of column names and data types"
@@ -64,9 +69,21 @@
                           (Long. (Long/parseLong (.replaceAll datum " " "")))
                           (Long. (int datum)))         
              *categorical* (str datum)
+             *date-time* (str datum)
              (throw (Exception. (str "Uknown type for row " kind))))
          (catch Exception ex
            nil)))))
+
+(defn parse-date-time
+  "Parses a date time with the information stored in a table"
+  ([date-time column table]
+     (if (string? date-time)
+       (if (string? column)
+         (let [format-str (.. (:table table) (getHeader) (getDateFormats) (get column))]
+           (.parse (java.text.SimpleDateFormat. format-str) date-time))
+         (let [column-name (.. (:table table) (getHeader) (getColumnNames) (get column))]
+           (parse-date-time date-time column-name table)))
+       (java.util.Date. (long date-time)))))
 
 (defn parse-writable
   "Tries to extract the object wrapped in a Writable container object"
@@ -101,7 +118,15 @@
   ([schema]
      (let [column-names (ArrayList. (map (fn [k] (name k)) (:ordered-columns schema)))
            column-types (ArrayList. (ordered-types-schema schema))]
-       (TableHeader. column-names column-types))))
+       (TableHeader. column-names column-types)))
+  ([schema date-formats]
+     (let [header (make-table-header schema)
+           date-formats (let [map (HashMap.)]
+                          (doseq [[c df] date-formats]
+                            (.put map (name c) df))
+                          map)]
+       (.setDateFormats header date-formats)
+       header)))
 
 (defn write-table
   "Writes the table information to the HDFS file system.
@@ -120,6 +145,21 @@
      (let [column-names (ArrayList. (map (fn [k] (name k)) (:ordered-columns schema)))
            column-types (ArrayList. (ordered-types-schema schema))
            table-header (TableHeader. column-names column-types)
+           table (Table. table-header rows-file-path)]
+       (seq-file-write!
+        (seq-file-writer output-file-path org.apache.hadoop.io.LongWritable Table)
+        (wrapper-identity-value org.apache.hadoop.io.LongWritable)
+        [[0 table]])
+       table))
+  ([output-file-path rows-file-path schema date-formats]
+     (let [column-names (ArrayList. (map (fn [k] (name k)) (:ordered-columns schema)))
+           column-types (ArrayList. (ordered-types-schema schema))
+           table-header (TableHeader. column-names column-types)
+           date-formats (let [map (HashMap.)]
+                          (doseq [[c df] date-formats]
+                            (.put map (name c) df))
+                          map)
+           _ (.setDateFormats table-header date-formats)
            table (Table. table-header rows-file-path)]
        (seq-file-write!
         (seq-file-writer output-file-path org.apache.hadoop.io.LongWritable Table)
@@ -151,7 +191,7 @@
 
 (defn import-dataset
   "creates a new table from a local file system file, returns the table hash for the new table"
-  ([in-filename out-filename schema & {:keys [delim keyword-headers quote nulls skip header compress-delim filter mapper]
+  ([in-filename out-filename schema & {:keys [delim keyword-headers quote nulls skip header compress-delim filter mapper date-formats]
                                        :or   {delim \,
                                               quote \"
                                               nulls ["","NULL"]
@@ -159,7 +199,8 @@
                                               header false
                                               filter (constantly true)
                                               mapper identity
-                                              keyword-headers true}}]
+                                              keyword-headers true
+                                              date-formats {}}}]
      (let [lines (read-lines (reader in-filename))
            skip (if header (inc skip) skip)]
        (loop [skip skip
@@ -174,7 +215,7 @@
                                              [(conj ac [(long i) (make-row i schema line)]) (inc i)])
                                            [[] 0]
                                            acum)))
-               (write-table out-filename (str out-filename ".rows") schema)
+               (write-table out-filename (str out-filename ".rows") schema date-formats)
                (open-dataset out-filename))
            (if (> skip 0)
          
@@ -220,7 +261,7 @@
       (.setRowsPath input)
       (.setTablePath output)
       (.setConfiguration *conf*)
-      (.setHeader (make-table-header schema)))
+      (.setHeader (make-table-header schema (or (:date-formats opts) {}))))
     (seq-file-write!
      (seq-file-writer (path (.getTablePath table))
                       org.apache.hadoop.io.LongWritable

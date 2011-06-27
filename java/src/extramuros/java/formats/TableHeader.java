@@ -17,6 +17,7 @@ import java.util.HashMap;
  */
 public class TableHeader implements Writable {
     private ArrayList<String> columnNames;
+    private HashMap<String,String> dateFormats;
     private ArrayList<Integer> columnTypes;
     private HashMap<String, Integer> columnsMap;
 
@@ -27,6 +28,7 @@ public class TableHeader implements Writable {
     public TableHeader(ArrayList<String> columnNames, ArrayList<Integer> columnTypes) {
         this.setColumnNames(columnNames);
         this.setColumnTypes(columnTypes);
+        this.setDateFormats(new HashMap<String, String>());
         buildColumnsMap();
     }
 
@@ -37,6 +39,13 @@ public class TableHeader implements Writable {
             IntWritable tmpType = new IntWritable(getColumnTypes().get(i));
             tmpName.write(dataOutput);
             tmpType.write(dataOutput);
+        }
+        dataOutput.writeInt(getDateFormats().size());
+        for(String columnName : getDateFormats().keySet()) {
+            Text dateColumnName = new Text(columnName);
+            dateColumnName.write(dataOutput);
+            Text dateColumnFormat = new Text(getDateFormats().get(columnName));
+            dateColumnFormat.write(dataOutput);
         }
     }
 
@@ -53,6 +62,18 @@ public class TableHeader implements Writable {
 
             getColumnNames().add(tmpName.toString());
             getColumnTypes().add(tmpType.get());
+        }
+
+        size = dataInput.readInt();
+        setDateFormats(new HashMap<String, String>(size));
+        for(int i=0; i<size; i++) {
+            Text tmpName = new Text();
+            Text tmpFormat = new Text();
+
+            tmpName.readFields(dataInput);
+            tmpFormat.readFields(dataInput);
+
+            getDateFormats().put(tmpName.toString(),tmpFormat.toString());
         }
 
         buildColumnsMap();
@@ -114,5 +135,13 @@ public class TableHeader implements Writable {
 
     public void setColumnsMap(HashMap<String, Integer> columnsMap) {
         this.columnsMap = columnsMap;
+    }
+
+    public HashMap<String,String> getDateFormats() {
+        return dateFormats;
+    }
+
+    public void setDateFormats(HashMap<String,String> dateFormats) {
+        this.dateFormats = dateFormats;
     }
 }

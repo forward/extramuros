@@ -299,6 +299,12 @@ public class TextFileTableAdapter extends AbstractTableAdapter<Text, String> imp
                         Long number = Long.parseLong(part);
                         values[position] = number;
                     }
+                } else if (type == RowTypes.DATE_TIME) {
+                    if(part == null) {
+                        values[position] = null;
+                    } else {
+                        values[position] = part;
+                    }
                 } else {
                     values[position] = part;
                 }

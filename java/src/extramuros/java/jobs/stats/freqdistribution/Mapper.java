@@ -52,6 +52,13 @@ public class Mapper extends org.apache.hadoop.mapreduce.Mapper<Writable,Writable
                 number = ((Integer) row.getValues().get(position)).doubleValue();
             } else if(type == RowTypes.LONG) {
                 number = ((Long) row.getValues().get(position)).doubleValue();
+            } else if(type == RowTypes.DATE_TIME) {
+                try {
+                    number = new Long(TableUtils.parseDateAtColumn(row, position, table).getTime()).doubleValue();
+                } catch (Exception ex) {
+                    // format exception
+                    number = null;
+                }
             }
 
             if(number!=null) {

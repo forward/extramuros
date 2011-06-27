@@ -13,4 +13,5 @@ public interface RowTypes {
     public static int STRING = 4;
     public static int CATEGORICAL = 5;
     public static int NULL = 6;
+    public static int DATE_TIME = 7;
 }

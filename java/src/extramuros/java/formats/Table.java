@@ -167,4 +167,5 @@ public class Table implements AbstractTable {
     public Class<? extends Writable> getRowClass() {
         return Row.class;
     }
+
 }

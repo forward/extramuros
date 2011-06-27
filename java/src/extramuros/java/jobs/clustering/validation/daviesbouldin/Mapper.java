@@ -1,12 +1,7 @@
 package extramuros.java.jobs.clustering.validation.daviesbouldin;
 
-import extramuros.java.formats.AbstractTable;
-import extramuros.java.formats.Row;
-import extramuros.java.formats.RowTypes;
-import extramuros.java.formats.adapters.AbstractTableAdapter;
 import extramuros.java.jobs.utils.ClusterUtils;
 import extramuros.java.jobs.utils.JobKeys;
-import extramuros.java.jobs.utils.TableUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;

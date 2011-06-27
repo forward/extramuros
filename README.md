@@ -250,6 +250,33 @@ Example code:
 
 <img src='https://github.com/forward/extramuros/raw/master/readme_files/parallel.png'></img>
 
+##Supported types
+
+At the present moment tables and wrapped tables support the following types in their definitions:
+
+- string
+- float
+- double
+- integer
+- long
+- categorical
+- date-time
+- null
+
+The null type is used internally by the library to values in rows where a NULL value has been detected.
+These types are defined in the interface *extramuros.java.formats.RowTypes*. 
+
+Some wrapped tables does not support all the data types. For example, a wrapped vector sequence file will only support numeric data types and dates that can be converted into double values.
+
+###Working with dates
+
+Columns in a table can be declared to be of type *date-time*. In this case, an additional map containing format strings for that column must be specified when the table is imported/wrapped.
+The format information will be used to transform the literal representation of the date into a *java.util.Date* object.
+
+    (let [test-file-schema (def-schema :name *string* :columna *integer* :columnb *date-time*)]
+      (wrap-dataset :text "test_assets/test.txt" "test_assets/test.txt.out" test-file-schema {:separator "," :date-formats {:columnb "dd-mm-yyyy"}}))
+
+In the case of a table wrapping a vector sequence file, the date format specification is not required, since the value of the date will be stored as a long value.
 
 ##Implemented jobs
 

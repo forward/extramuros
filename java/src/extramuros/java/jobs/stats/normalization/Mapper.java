@@ -53,7 +53,7 @@ public class Mapper extends org.apache.hadoop.mapreduce.Mapper<Writable, Writabl
             int position = table.getHeader().positionFor(columnName);
             int type = table.getHeader().typeFor(columnName);
 
-            Double number;
+            Double number = new Double(0);
             try {
                 if(row.isNullAt(position)) {
                     success = false;
@@ -67,6 +67,14 @@ public class Mapper extends org.apache.hadoop.mapreduce.Mapper<Writable, Writabl
                     number = ((Integer) row.getValues().get(position)).doubleValue();
                 } else if (type == RowTypes.LONG) {
                     number = ((Long) row.getValues().get(position)).doubleValue();
+                } else if(type == RowTypes.DATE_TIME) {
+                    try {
+                        number = new Long(TableUtils.parseDateAtColumn(row, position, table).getTime()).doubleValue();
+                    } catch (Exception ex) {
+                        // format exception
+                        success = false;
+                        break;
+                    }
                 } else {
                     success = false;
                     break;
