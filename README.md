@@ -274,7 +274,8 @@ Columns in a table can be declared to be of type *date-time*. In this case, an a
 The format information will be used to transform the literal representation of the date into a *java.util.Date* object.
 
     (let [test-file-schema (def-schema :name *string* :columna *integer* :columnb *date-time*)]
-      (wrap-dataset :text "test_assets/test.txt" "test_assets/test.txt.out" test-file-schema {:separator "," :date-formats {:columnb "dd-mm-yyyy"}}))
+      (wrap-dataset :text "test_assets/test.txt" "test_assets/test.txt.out" test-file-schema 
+                    {:separator "," :date-formats {:columnb "dd-mm-yyyy"}}))
 
 In the case of a table wrapping a vector sequence file, the date format specification is not required, since the value of the date will be stored as a long value.
 
