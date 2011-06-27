@@ -177,6 +177,8 @@ Options:
 - series-label
 - columns
 
+Example code:
+
     (view-table :box-plot *table* {:columns ["sepal_length" "sepal_width"]})
 
 <img src='https://github.com/forward/extramuros/raw/master/readme_files/box_plot.png'></img>
@@ -189,6 +191,8 @@ Options:
 - legend
 - columns
 
+Example code:
+
     (view-table :box-plot *table* {:columns ["sepal_length" "sepal_width"]})
 
 <img src='https://github.com/forward/extramuros/raw/master/readme_files/scatter_plot.png'></img>
@@ -200,6 +204,8 @@ Options:
 - title
 - legend
 - columns
+
+Example code:
 
     (view-table :scatter-plot-grouped *table* {:columns ["sepal_length" "sepal_width" "petal_width"]})
 
@@ -214,6 +220,8 @@ Options:
 - y-label
 - columns
 
+Example code:
+
     (view-table :frequencies-histogram *table* {:columns ["sepal_length" "sepal_width"]})
 
 <img src='https://github.com/forward/extramuros/raw/master/readme_files/frequencies.png'></img>
@@ -224,6 +232,8 @@ Options:
 
 - columns
 
+Example code:
+
     (view-table :scatter-3d *table* {:columns ["sepal_length" "sepal_width" "petal_width"]})
 
 <img src='https://github.com/forward/extramuros/raw/master/readme_files/scatter_3d.png'></img>
@@ -233,6 +243,8 @@ Options:
 Options:
 
 - columns
+
+Example code:
 
     (view-table :parallel-lines *table* {:columns ["sepal_length" "sepal_width" "petal_width"]})
 
