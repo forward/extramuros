@@ -170,12 +170,12 @@ The sampled data will be stored in a temporal directory in the HDFS file system.
 
 Options:
 
--title
--legend
--y-label
--x-label
--series-label
--columns
+- title
+- legend
+- y-label
+- x-label
+- series-label
+- columns
 
     (view-table :box-plot *table* {:columns ["sepal_length" "sepal_width"]})
 
@@ -185,9 +185,9 @@ Options:
 
 Options:
 
--title
--legend
--columns
+- title
+- legend
+- columns
 
     (view-table :box-plot *table* {:columns ["sepal_length" "sepal_width"]})
 
@@ -197,9 +197,9 @@ Options:
 
 Options:
 
--title
--legend
--columns
+- title
+- legend
+- columns
 
     (view-table :scatter-plot-grouped *table* {:columns ["sepal_length" "sepal_width" "petal_width"]})
 
@@ -209,20 +209,20 @@ Options:
 
 Options:
 
--title
--x-label
--y-label
--columns
+- title
+- x-label
+- y-label
+- columns
 
     (view-table :frequencies-histogram *table* {:columns ["sepal_length" "sepal_width"]})
 
-<img src='https://github.com/forward/extramuros/raw/master/readme_files/frequences.png'></img>
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/frequencies.png'></img>
 
 ### scatter 3d
 
 Options:
 
--columns
+- columns
 
     (view-table :scatter-3d *table* {:columns ["sepal_length" "sepal_width" "petal_width"]})
 
@@ -232,7 +232,7 @@ Options:
 
 Options:
 
--columns
+- columns
 
     (view-table :parallel-lines *table* {:columns ["sepal_length" "sepal_width" "petal_width"]})
 
