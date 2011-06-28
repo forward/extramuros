@@ -167,7 +167,7 @@ public class ProClusGreedyInitializationJob extends AbstractJob {
 
     // common run logic
     public void run() throws Exception {
-        // build the input for the greedy algorithm
+        // sort the input for the greedy algorithm
         buildFirstMedoidSet();
 
         // run the greedy initialization

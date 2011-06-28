@@ -179,7 +179,7 @@ public class ProClusDimensionSelectionJob extends AbstractJob {
         log.info("*** PATH -> "+medoidSetInputFile.toUri().getPath());
         runSelectDimensions(medoidSetInputFile);
 
-        // build the final set of initial clusters
+        // sort the final set of initial clusters
         buildInitialClusters();
     }
 

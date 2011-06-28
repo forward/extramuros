@@ -169,7 +169,7 @@ public class ProClusRefinementJob extends AbstractJob {
         // run the job
         runSelectDimensions();
 
-        // build the final set of initial clusters
+        // sort the final set of initial clusters
         buildInitialClusters();
     }
 

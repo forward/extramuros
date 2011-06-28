@@ -1,6 +1,7 @@
 package extramuros.java.formats;
 
 import org.apache.hadoop.io.*;
+import org.easymock.internal.matchers.InstanceOf;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -164,6 +165,22 @@ public class Row implements Writable, WritableComparable<Row> {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public void setValue(String columnName, Object value) {
+        int position = this.columnsNames.indexOf(columnName);
+        int type = this.columnsTypes.get(position);
+        if(type == RowTypes.DOUBLE) {
+            this.values.set(position,(Double) value);
+        } else if(type == RowTypes.FLOAT) {
+            this.values.set(position,(Float) value);
+        } else if(type == RowTypes.INTEGER) {
+            this.values.set(position,(Integer) value);
+        } else if(type == RowTypes.LONG) {
+            this.values.set(position,(Long) value);
+        } else if(type == RowTypes.STRING || type == RowTypes.CATEGORICAL || type == RowTypes.DATE_TIME) {
+            this.values.set(position, (String)value);
+        }
     }
 
     public ArrayList<String> getColumnsNames() {

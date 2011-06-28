@@ -35,7 +35,7 @@
        (.run job)
        job)))
 
-(deftype CentralityStatsJob [job configuration]  extramuros.jobs.core.ExtramurosJob
+(deftype CentralityStatsJob [job configuration] extramuros.jobs.core.ExtramurosJob
          (run [this] (let [job-run (centrality-stats-column-job
                                     (:column @configuration)
                                     (:table @configuration)

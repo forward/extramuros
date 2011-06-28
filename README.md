@@ -309,3 +309,8 @@ Clustering (extramuros.jobs.clustering)
 Validation (extramuros.jobs.clustering.validation)
 
 - davies-bouldin-index
+
+Time series (extramuros.jobs.time-series)
+
+- time-series-sort
+- time-series-aggregate

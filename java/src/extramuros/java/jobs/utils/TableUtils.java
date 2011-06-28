@@ -325,7 +325,6 @@ public class TableUtils {
                 String columnName = table.getHeader().getColumnNames().get(column);
                 String dateFormat = table.getHeader().getDateFormats().get(columnName);
                 SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
-
                 return sdf.parse((String) tmp);
 
             } else {

@@ -1,5 +1,6 @@
 package extramuros.java.formats;
 
+import com.google.common.collect.ArrayListMultimap;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
@@ -106,7 +107,22 @@ public class TableHeader implements Writable {
     }
 
     public TableHeader clone() {
-        return new TableHeader(getColumnNames(),getColumnTypes());
+        ArrayList<String> clonedColumnNames = new ArrayList<String>(getColumnNames().size());
+        ArrayList<Integer> clonedColumnTypes = new ArrayList<Integer>(getColumnTypes().size());
+
+        for(int i=0; i<columnNames.size(); i++) {
+            clonedColumnNames.add(new String(getColumnNames().get(i)));
+            clonedColumnTypes.add(new Integer(getColumnTypes().get(i)));
+        }
+        TableHeader cloned = new TableHeader(clonedColumnNames, clonedColumnTypes);
+
+        HashMap<String,String> clonedDateFormats = new HashMap<String, String>(getDateFormats().size());
+        for(String key : getDateFormats().keySet()) {
+            clonedDateFormats.put(new String(key), new String(getDateFormats().get(key)));
+        }
+        cloned.setDateFormats(clonedDateFormats);
+
+        return cloned;
     }
 
     public int typeFor(String columnName) {

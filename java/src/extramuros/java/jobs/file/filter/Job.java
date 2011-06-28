@@ -27,7 +27,6 @@ public class Job extends ExtramurosJob {
 
     protected Path outputPath;
     protected AbstractTable table;
-    protected Path outputFile;
     protected Class<? extends AbstractFilterMapper> mapperClass;
     protected String filterInfo;
 
@@ -38,7 +37,6 @@ public class Job extends ExtramurosJob {
         super(configuration);
         this.table = table;
         this.outputPath = outputPath;
-        this.outputFile = this.outputPath;
         this.mapperClass = mapperClass;
         this.filterInfo = filterInfo;
 
@@ -99,7 +97,7 @@ public class Job extends ExtramurosJob {
 
     @Override
     public Path getOutputFile() {
-        return outputFile;
+        return outputPath;
     }
 
     @Override
