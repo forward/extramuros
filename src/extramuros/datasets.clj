@@ -340,3 +340,9 @@
                          (nth (row-to-seq row) column-position))
                        (table-rows table))]
        points)))
+
+(defn table-row-value-for
+  "Returns the value for a column in a row"
+  ([table row column]
+     (let [position (table-column-position column table)]
+       (nth (row-to-seq row) position))))

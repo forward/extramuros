@@ -308,3 +308,41 @@
 
 (defmethod make-job :filter-table [_]
   (FilterTableJob. (atom nil) (atom nil)))
+
+
+;; map
+
+
+(defn map-clojure-job
+  ([directory-output function-str table]
+     (let [job (extramuros.java.jobs.file.map.Job. (path directory-output)
+                                                      table
+                                                      extramuros.java.jobs.file.map.ClojureFilterMapper
+                                                      function-str
+                                                      *conf*)]
+       (.run job)
+       job)))
+
+(deftype MapTableJob [job configuration]  extramuros.jobs.core.ExtramurosJob
+         (run [this] (let [job-run (map-clojure-job
+                                    (:directory-output @configuration)
+                                    (:map-function @configuration)
+                                    (:table (:table @configuration)))]
+                       (swap! job (fn [_] job-run))))
+         (set-config [this map] (swap! configuration (fn [_] map)))
+         (config [this] @config)
+         (job [this] @job)
+         (output [this] (let [table (job-output @job)]
+                          (.setConfiguration table *conf*)
+                          {:table table
+                           :path (.getTablePath table)
+                           :schema (table-obj-to-schema table)}))
+         (output [this options] (let [to-return (job-output @job)]
+                                  to-return))
+         (output-path [this] (job-output-file @job))
+         (output-path [this options] (job-output-file @job))
+         (visualize [this] nil)
+         (visualize [this options] nil))
+
+(defmethod make-job :map-table [_]
+  (MapTableJob. (atom nil) (atom nil)))

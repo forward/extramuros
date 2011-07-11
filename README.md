@@ -158,6 +158,107 @@ Finally, we can compute some information about the quality of the clusters compu
                                    {:clustering-job *kmeans*
                                     :output-path "input/iris/davies-bouldin"}))))
 
+##Working with time series
+
+At the present moment, the library includes some limited support to work with time series.
+An example of time series analysis is included in the *examples/weather.clj* file.
+
+The example is an analysis of some weather data through three different years. The schema for these data is the following:
+
+    ;; weather data
+     
+    ;; 1. date
+    ;; 2. temperature in C.
+     
+    (def *schema*
+      (def-schema "date"           *date-time*	
+                  "temperature"    *double*))
+
+The *date* column is marked as having **date-time** type. In order to work with dates it is mandatory to provide a way to parse
+dates from their textual representation. This can be accomplished adding an additional map with the formats when importing or
+wrapping a dataset.
+
+    ;; importing the dataset into HDFS
+    (import-dataset "./examples/weather.data" "input/weather.data" *schema* :delim "," :date-formats {:date "yyyy-MM-dd"})
+     
+    (def *table* (open-dataset "input/weather.data"))
+
+Current implementation of time series jobs does not support null values. The following code remove all rows with null values from
+the table:
+
+    ; we filter the table to remove null rows
+    (def *filtered* (run-job :filter-table
+                             {:directory-output "input/filtered_weather.data"
+                              :table *table*
+     
+                              :filter-function (clojure `(fn [row] (not (nil? (get row "temperature")))))}))
+    (write-table (output *filtered*))
+    (def *table* (output *filtered*))
+
+If the data in the table is not sorted, the following job will sort the rows in chronological order according to a date-time column
+
+    ;; plot time series
+     
+    (def *sort* (run-job :time-series-sort
+                         {:column "date"
+                          :table *table*
+                          :output-path "input/weather/sort"}))
+    (view (visualize *sort* "temperature"))
+
+The visualization of this job will plot the sorted time series.
+
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/timeseries1.png'></img>
+
+The *time-series-aggregate* job can be used to aggregate data in the time series for a period of time: day, week, month, year...
+The *aggregation-function* key indicates how the aggregation will be made: sum, average, max, min, etc.
+In the example the time series is aggregated weekly using the max and min values:
+
+    ; max-min weekly
+    (def *aggregate* (run-job :time-series-aggregate
+                               {:column "date"
+                                :period :week
+                                :aggregation-function :max
+                                :table *table*
+                                :output-path "input/weather/aggregate/week"}))
+    (view (visualize *aggregate* "temperature"))
+     
+    (def *aggregate* (run-job :time-series-aggregate
+                               {:column "date"
+                                :period :week
+                                :aggregation-function :min
+                                :table *table*
+                                :output-path "input/weather/aggregate/week"}))
+    (view (visualize *aggregate* "temperature"))
+
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/timeseries2.png'></img>
+
+Data is also aggregated yearly using the average function:
+
+    ; aggregate yearly
+    (def *aggregate* (run-job :time-series-aggregate
+                               {:column "date"
+                                :period :year
+                                :aggregation-function :average
+                                :table *table*
+                                :output-path "input/weather/aggregate/year"}))
+    (view (visualize *aggregate* "temperature"))
+
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/timeseries3.png'></img>
+
+Some stationality analysis can be performed in the data using the *time-series-stationality* job that computes the average and variance for the data in the time series in the indicated period of time:
+
+;; stationality
+
+(def *stationality* (run-job :time-series-stationality
+                             {:column "temperature"
+                              :date-column "date"
+                              :table *table*
+                              :period :week
+                              :output-path "input/weather/aggregate/week/seasonality"}))
+(map view (visualize *stationality*))
+
+<img src='https://github.com/forward/extramuros/raw/master/readme_files/timeseries4.png'></img>
+
 ##Table visualization
 
 The library implements a collection of functions to visualize the data stored in HDFS tables. 
