@@ -7,7 +7,7 @@
 (use 'incanter.core)
 
 ;; Connect to the Hadoop cluster
-(bootstrap!  "~/Development/tmp/cloudera/hadoop-0.20.2-CDH3B4/conf/core-site.xml")
+(bootstrap!  "HADOOP_HOME/conf/core-site.xml")
 
 ;; weather data
 
