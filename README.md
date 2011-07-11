@@ -168,7 +168,7 @@ The example is an analysis of some weather data through three different years. T
     ;; weather data
      
     ;; 1. date
-    ;; 2. temperature in C.
+    ;; 2. temperature in F.
      
     (def *schema*
       (def-schema "date"           *date-time*	
@@ -247,15 +247,15 @@ Data is also aggregated yearly using the average function:
 
 Some stationality analysis can be performed in the data using the *time-series-stationality* job that computes the average and variance for the data in the time series in the indicated period of time:
 
-;; stationality
-
-(def *stationality* (run-job :time-series-stationality
-                             {:column "temperature"
-                              :date-column "date"
-                              :table *table*
-                              :period :week
-                              :output-path "input/weather/aggregate/week/seasonality"}))
-(map view (visualize *stationality*))
+    ;; stationality
+     
+    (def *stationality* (run-job :time-series-stationality
+                                 {:column "temperature"
+                                  :date-column "date"
+                                  :table *table*
+                                  :period :week
+                                  :output-path "input/weather/aggregate/week/seasonality"}))
+    (map view (visualize *stationality*))
 
 <img src='https://github.com/forward/extramuros/raw/master/readme_files/timeseries4.png'></img>
 

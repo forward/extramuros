@@ -12,7 +12,7 @@
 ;; weather data
 
 ;; 1. date
-;; 2. temperature in C.
+;; 2. temperature in F.
 
 (def *schema*
   (def-schema "date"           *date-time*	
